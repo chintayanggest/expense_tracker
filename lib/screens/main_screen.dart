@@ -13,7 +13,7 @@ class _MainScreenState extends State<MainScreen> {
 
   // This is the list of screens that will be displayed for each tab.
   static const List<Widget> _widgetOptions = <Widget>[
-    DashboardScreen(), // Our main dashboard
+    DashboardScreen(),
     Placeholder(),   // A placeholder for the "Goals" screen
     Placeholder(),   // A placeholder for the "Recurring" screen
     Placeholder(),   // A placeholder for the "Learn" screen
