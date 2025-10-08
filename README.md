@@ -47,7 +47,3 @@ Our development roadmap includes the following core features:
 *   **Flutter SDK:** Version 3.53.3
 *   **Dart SDK:** Version 3.9.2
 *   **Build Tool:** Gradle
-
-testing
-
-testing2.0
