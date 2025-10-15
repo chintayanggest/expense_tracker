@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
 import 'recurring_screen.dart'; // ✅ Tambahkan import untuk recurring
+import '../screens/goals_screen.dart';
+import 'profile_screen.dart'; //
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -12,12 +14,29 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
+
   static const List<Widget> _widgetOptions = <Widget>[
     DashboardScreen(),
     Placeholder(), // Goals
     RecurringScreen(), //
     Placeholder(), // Learn
     Placeholder(), // Profile
+
+  static final List<Widget> _widgetOptions = <Widget>[
+    const DashboardScreen(),
+    const GoalsPage(),     // ⬅️ ganti Placeholder dengan GoalsPage
+    const Placeholder(),   // Recurring screen (belum dibuat)
+    const Placeholder(),   // Learn screen (belum dibuat)
+    const Placeholder(),   // Profile screen (belum dibuat)
+
+  static const List<Widget> _widgetOptions = <Widget>[
+    DashboardScreen(), // Halaman Dashboard
+    Placeholder(),     // Goals (belum dibuat)
+    Placeholder(),     // Recurring (belum dibuat)
+    Placeholder(),     // Learn (belum dibuat)
+    ProfileScreen(),   // Profile sudah dihubungkan
+
+
   ];
 
   void _onItemTapped(int index) {
@@ -57,7 +76,12 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ],
         currentIndex: _selectedIndex,
+
         selectedItemColor: Colors.green,
+
+        selectedItemColor: Colors.teal,
+        unselectedItemColor: Colors.grey,
+
         onTap: _onItemTapped,
       ),
     );
