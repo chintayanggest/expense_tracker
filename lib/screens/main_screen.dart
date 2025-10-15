@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
 import '../screens/goals_screen.dart';
+import 'profile_screen.dart'; //
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -12,13 +13,20 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  // 🔹 Tambahkan GoalsPage ke dalam daftar halaman
   static final List<Widget> _widgetOptions = <Widget>[
     const DashboardScreen(),
     const GoalsPage(),     // ⬅️ ganti Placeholder dengan GoalsPage
     const Placeholder(),   // Recurring screen (belum dibuat)
     const Placeholder(),   // Learn screen (belum dibuat)
     const Placeholder(),   // Profile screen (belum dibuat)
+
+  static const List<Widget> _widgetOptions = <Widget>[
+    DashboardScreen(), // Halaman Dashboard
+    Placeholder(),     // Goals (belum dibuat)
+    Placeholder(),     // Recurring (belum dibuat)
+    Placeholder(),     // Learn (belum dibuat)
+    ProfileScreen(),   // Profile sudah dihubungkan
+
   ];
 
   void _onItemTapped(int index) {
