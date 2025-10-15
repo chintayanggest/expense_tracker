@@ -3,9 +3,21 @@
 import 'package:flutter/material.dart';
 import '../models/savings_goal.dart';
 import '../services/database_helper.dart';
+import 'goals_screen.dart';
 import 'add_goal_screen.dart';
 import 'goal_detail_screen.dart';
 import 'package:intl/intl.dart';
+
+class GoalsScreen extends StatelessWidget {
+  const GoalsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(child: Text('Goals Screen')),
+    );
+  }
+}
 
 class GoalsPage extends StatefulWidget {
   const GoalsPage({super.key});
