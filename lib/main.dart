@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'screens/main_screen.dart';
-import 'screens/goals_screen.dart'; // pastikan path sesuai (bisa 'screens/' kalau folder kamu lain)
+import 'screens/goals_screen.dart';
+import 'package:provider/provider.dart';
+import 'providers/transaction_provider.dart';
+
 
 void main() {
   runApp(const MyApp());
