@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
+import '../screens/goals_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -11,13 +12,13 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  // This is the list of screens that will be displayed for each tab.
-  static const List<Widget> _widgetOptions = <Widget>[
-    DashboardScreen(),
-    Placeholder(),   // A placeholder for the "Goals" screen
-    Placeholder(),   // A placeholder for the "Recurring" screen
-    Placeholder(),   // A placeholder for the "Learn" screen
-    Placeholder(),   // A placeholder for the "Profile" screen
+  // 🔹 Tambahkan GoalsPage ke dalam daftar halaman
+  static final List<Widget> _widgetOptions = <Widget>[
+    const DashboardScreen(),
+    const GoalsPage(),     // ⬅️ ganti Placeholder dengan GoalsPage
+    const Placeholder(),   // Recurring screen (belum dibuat)
+    const Placeholder(),   // Learn screen (belum dibuat)
+    const Placeholder(),   // Profile screen (belum dibuat)
   ];
 
   void _onItemTapped(int index) {
@@ -34,7 +35,6 @@ class _MainScreenState extends State<MainScreen> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard),
@@ -58,7 +58,8 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.deepPurple,
+        selectedItemColor: Colors.teal,
+        unselectedItemColor: Colors.grey,
         onTap: _onItemTapped,
       ),
     );
