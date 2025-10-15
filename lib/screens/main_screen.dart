@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
-
+import 'profile_screen.dart'; //
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -11,13 +11,13 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  // This is the list of screens that will be displayed for each tab.
+  // ✅ Daftar layar untuk tiap tab
   static const List<Widget> _widgetOptions = <Widget>[
-    DashboardScreen(),
-    Placeholder(),   // A placeholder for the "Goals" screen
-    Placeholder(),   // A placeholder for the "Recurring" screen
-    Placeholder(),   // A placeholder for the "Learn" screen
-    Placeholder(),   // A placeholder for the "Profile" screen
+    DashboardScreen(), // Halaman Dashboard
+    Placeholder(),     // Goals (belum dibuat)
+    Placeholder(),     // Recurring (belum dibuat)
+    Placeholder(),     // Learn (belum dibuat)
+    ProfileScreen(),   // Profile sudah dihubungkan
   ];
 
   void _onItemTapped(int index) {
@@ -34,7 +34,6 @@ class _MainScreenState extends State<MainScreen> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard),

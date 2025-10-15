@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -60,7 +62,9 @@ class DashboardScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           // TODO: Navigate to the Add Transaction Screen
-          print('FAB Tapped!');
+          if (kDebugMode) {
+            print('FAB Tapped!');
+          }
         },
         backgroundColor: Colors.deepPurple,
         child: const Icon(Icons.add),
