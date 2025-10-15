@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
+import 'recurring_screen.dart'; // ✅ Tambahkan import untuk recurring
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -11,13 +12,12 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  // This is the list of screens that will be displayed for each tab.
   static const List<Widget> _widgetOptions = <Widget>[
     DashboardScreen(),
-    Placeholder(),   // A placeholder for the "Goals" screen
-    Placeholder(),   // A placeholder for the "Recurring" screen
-    Placeholder(),   // A placeholder for the "Learn" screen
-    Placeholder(),   // A placeholder for the "Profile" screen
+    Placeholder(), // Goals
+    RecurringScreen(), //
+    Placeholder(), // Learn
+    Placeholder(), // Profile
   ];
 
   void _onItemTapped(int index) {
@@ -34,7 +34,6 @@ class _MainScreenState extends State<MainScreen> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard),
@@ -58,7 +57,7 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.deepPurple,
+        selectedItemColor: Colors.green,
         onTap: _onItemTapped,
       ),
     );
