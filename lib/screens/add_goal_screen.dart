@@ -1,24 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../models/savings_goal.dart';
-import '../services/database_helper.dart';
+import '../models/savings_goal_model.dart';
 import 'package:intl/intl.dart';
 
-class AddGoalPage extends StatefulWidget {
-  const AddGoalPage({super.key});
+class AddGoalScreen extends StatefulWidget {
+  const AddGoalScreen({super.key});
 
   @override
-  State<AddGoalPage> createState() => _AddGoalPageState();
+  State<AddGoalScreen> createState() => _AddGoalScreenState();
 }
 
-class _AddGoalPageState extends State<AddGoalPage> {
+class _AddGoalScreenState extends State<AddGoalScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _targetAmountController = TextEditingController();
-  final DatabaseHelper _dbHelper = DatabaseHelper();
+
 
   DateTime? _selectedDate;
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -27,12 +25,13 @@ class _AddGoalPageState extends State<AddGoalPage> {
     super.dispose();
   }
 
+  // This function is the same as your friend's, it's perfect.
   Future<void> _selectDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now().add(const Duration(days: 30)),
       firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 3650)), // 10 tahun
+      lastDate: DateTime.now().add(const Duration(days: 3650)),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -52,49 +51,29 @@ class _AddGoalPageState extends State<AddGoalPage> {
     }
   }
 
-  Future<void> _saveGoal() async {
-    if (!_formKey.currentState!.validate()) return;
+  // --- THIS FUNCTION IS NOW MUCH SIMPLER ---
+  void _saveGoal() {
+    // 1. Validate the form inputs
+    if (!_formKey.currentState!.validate()) {
+      return; // If not valid, do nothing.
+    }
 
-    setState(() => _isLoading = true);
-
-    final goal = SavingsGoal(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+    // 2. Create the new SavingsGoal object from the form data
+    final newGoal = SavingsGoal(
+      id: DateTime.now().millisecondsSinceEpoch.toString(), // A simple unique ID
       name: _nameController.text.trim(),
       targetAmount: double.parse(_targetAmountController.text),
-      currentAmount: 0,
+      currentAmount: 0, // New goals always start at 0
       targetDate: _selectedDate,
     );
 
-    try {
-      await _dbHelper.insertGoal(goal);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Goal created successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pop(context, true);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error creating goal: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
+    // 3. Pop the screen and send the new goal object back to GoalsScreen
+    Navigator.pop(context, newGoal);
   }
 
   @override
   Widget build(BuildContext context) {
+    // The entire UI part is nearly identical, only the save button is simplified.
     return Scaffold(
       appBar: AppBar(
         title: const Text('Create New Goal'),
@@ -110,10 +89,7 @@ class _AddGoalPageState extends State<AddGoalPage> {
             children: [
               const Text(
                 'Goal Details',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 24),
 
@@ -124,9 +100,7 @@ class _AddGoalPageState extends State<AddGoalPage> {
                   labelText: 'Goal Name',
                   hintText: 'e.g., New MacBook',
                   prefixIcon: const Icon(Icons.flag),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: const BorderSide(color: Colors.teal, width: 2),
@@ -147,20 +121,16 @@ class _AddGoalPageState extends State<AddGoalPage> {
                 decoration: InputDecoration(
                   labelText: 'Target Amount',
                   hintText: '0',
-                  prefixIcon: const Icon(Icons.attach_money),
                   prefixText: 'Rp ',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  prefixIcon: const Icon(Icons.attach_money),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: const BorderSide(color: Colors.teal, width: 2),
                   ),
                 ),
                 keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                ],
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter target amount';
@@ -174,7 +144,7 @@ class _AddGoalPageState extends State<AddGoalPage> {
               ),
               const SizedBox(height: 16),
 
-              // Target Date Field (Optional)
+              // Target Date Field
               InkWell(
                 onTap: _selectDate,
                 child: Container(
@@ -193,10 +163,7 @@ class _AddGoalPageState extends State<AddGoalPage> {
                           children: [
                             Text(
                               'Target Date (Optional)',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                              ),
+                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -205,9 +172,7 @@ class _AddGoalPageState extends State<AddGoalPage> {
                                   : DateFormat('dd MMMM yyyy').format(_selectedDate!),
                               style: TextStyle(
                                 fontSize: 16,
-                                color: _selectedDate == null
-                                    ? Colors.grey
-                                    : Colors.black,
+                                color: _selectedDate == null ? Colors.grey : Colors.black,
                               ),
                             ),
                           ],
@@ -216,11 +181,7 @@ class _AddGoalPageState extends State<AddGoalPage> {
                       if (_selectedDate != null)
                         IconButton(
                           icon: const Icon(Icons.clear, color: Colors.red),
-                          onPressed: () {
-                            setState(() {
-                              _selectedDate = null;
-                            });
-                          },
+                          onPressed: () => setState(() => _selectedDate = null),
                         ),
                     ],
                   ),
@@ -228,34 +189,20 @@ class _AddGoalPageState extends State<AddGoalPage> {
               ),
               const SizedBox(height: 32),
 
-              // Save Button
+              // --- SIMPLIFIED SAVE BUTTON ---
               SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: _isLoading ? null : _saveGoal,
+                  onPressed: _saveGoal, // Just calls our function directly
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.teal,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: _isLoading
-                      ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
-                  )
-                      : const Text(
+                  child: const Text(
                     'Create Goal',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),

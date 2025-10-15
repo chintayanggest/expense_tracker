@@ -1,5 +1,3 @@
-// lib/providers/transaction_provider.dart
-
 import 'package:flutter/material.dart';
 import '../models/account.dart';
 import '../models/transaction_category.dart';

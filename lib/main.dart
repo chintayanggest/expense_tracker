@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/main_screen.dart';
-import 'screens/goals_screen.dart';
 import 'package:provider/provider.dart';
 import 'providers/transaction_provider.dart';
-
 
 void main() {
   runApp(const MyApp());
@@ -12,21 +10,14 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Eco Finance App',
-      theme: ThemeData(
-        primarySwatch: Colors.teal,
+    return ChangeNotifierProvider(
+      create: (context) => TransactionProvider(),
+      child: const MaterialApp(
+        home: MainScreen(),
       ),
-      // 🏠 tetap dashboard utama
-      home: const MainScreen(),
-
-      // 🧭 tambahkan route agar bisa navigasi ke halaman goals
-      routes: {
-        '/goals': (context) => const GoalsPage(),
-      },
     );
   }
 }

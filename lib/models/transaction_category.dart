@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'transaction_type.dart'; // We need this for the TransactionType enum
+import 'transaction_type.dart';
 
 class TransactionCategory {
   final String id;
   final String name;
-  final IconData icon; // This will hold the icon for the category
-  final Color color;   // This will hold the color for the category
-  final TransactionType type; // Is it an Expense or Income category?
+  final IconData icon;
+  final Color color;
+  final TransactionType type;
 
   TransactionCategory({
     required this.id,
