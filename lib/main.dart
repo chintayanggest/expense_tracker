@@ -16,6 +16,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      home: MainScreen(),
       title: 'Eco Finance App',
       theme: ThemeData(
         primarySwatch: Colors.teal,
