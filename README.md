@@ -11,10 +11,10 @@ FinTrack is more than just an expense logger; it's a comprehensive tool for fina
 This project is being developed as a final requirement for the Mobile Programming course.
 
 ## Team
-1. Najdain Tafdila
-2. Najmiyatul Nabilah Lubis
-3. Chinta Yanggest Br Tarigan
-4. Nayla Syifa 
+1. Najdain Tafdila (231402008)
+2. Najmiyatul Nabilah Lubis (231402011)
+3. Chinta Yanggest Br Tarigan (231402038)
+4. Nayla Syifa (231402123)
 
 
 ## Features 
