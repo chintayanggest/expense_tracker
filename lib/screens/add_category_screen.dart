@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+// import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 // import 'package:flutter_iconpicker/flutter_iconpicker.dart';
 import 'package:provider/provider.dart';
 import '../models/transaction_category.dart';
@@ -33,12 +33,6 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
         return AlertDialog(
           title: const Text('Pick a color'),
           content: SingleChildScrollView(
-            child: ColorPicker(
-              pickerColor: _selectedColor,
-              onColorChanged: (Color color) {
-                setState(() => _selectedColor = color);
-              },
-            ),
           ),
           actions: <Widget>[
             ElevatedButton(
