@@ -1,150 +1,128 @@
 import 'package:flutter/material.dart';
-import 'manage_accounts_screen.dart';
-import 'manage_categories_screen.dart';
-import 'profile_screen.dart';
-import 'package:provider/provider.dart';
-import '../providers/transaction_provider.dart';
-import '../models/transaction.dart';
-import '../models/transaction_type.dart';
-import 'add_transaction_screen.dart';
+import 'package:mobile_course_project/screens/profile_screen.dart';
 
-
-class DashboardScreen extends StatefulWidget {
+class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
-  @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
-}
-class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<TransactionProvider>(
-      builder: (context, transactionProvider, child) {
-        final expenseTransactions = transactionProvider.transactions.where((tx) => tx.type == TransactionType.expense).toList();
-        final incomeTransactions = transactionProvider.transactions.where((tx) => tx.type == TransactionType.income).toList();
-        return Scaffold(
-          drawer: Drawer(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                const DrawerHeader(
-                  decoration: BoxDecoration(
-                    color: Colors.deepPurple,
-                  ),
-                  child: Text(
-                    'Menu',
-                    style: TextStyle(color: Colors.white, fontSize: 24),
-                  ),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.account_balance_wallet),
-                  title: const Text('Rekening(Accounts)'),
-                  onTap:() {
-                    Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(builder:(context) => const ManageAccountsScreen()));
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.category),
-                  title: const Text('Kategori(Categories)'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const ManageCategoriesScreen()));
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.person),
-                  title: const Text('Profile'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
-                  },
-                ),
-              ],
-            ),
-          ),
-          appBar: AppBar(
-            title: const Text('Dashboard'),
-            bottom: TabBar(
-              controller: _tabController,
-              tabs: const [ Tab(text: 'Expenses'), Tab(text: 'Income'), ],
-            ),
-          ),
-          body: Column(
-            children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20.0),
-                color: Theme.of(context).primaryColor.withOpacity(0.1),
-                child: Column(
-                  children: [
-                    const Text('Total Balance', style: TextStyle(fontSize: 16, color: Colors.grey)),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Rp${transactionProvider.totalBalance.toStringAsFixed(0)}',
-                      style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Dashboard'),
+        backgroundColor: Colors.blue,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header Section
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
               ),
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    TransactionListView(transactions: expenseTransactions),
-                    TransactionListView(transactions: incomeTransactions),
-                  ],
-                ),
+              child: const Row(
+                children: [
+                  Icon(Icons.account_balance_wallet, color: Colors.blue, size: 40),
+                  SizedBox(width: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Welcome Back!',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'Here’s your financial overview.',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
-          ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () { Navigator.push(context, MaterialPageRoute(builder: (context) => const AddTransactionScreen()),); },
-            child: const Icon(Icons.add),
-          ),
-        );
-      },
+            ),
+            const SizedBox(height: 24),
+
+            // Recent Transactions Section
+            const Text(
+              'Recent Transactions',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Expanded(
+              child: ListView(
+                children: [
+                  TransactionTile(
+                    icon: Icons.shopping_cart,
+                    title: 'Shopping',
+                    amount: -150.00,
+                    color: Colors.red.withValues(alpha: 0.2),
+                  ),
+                  TransactionTile(
+                    icon: Icons.restaurant,
+                    title: 'Dining',
+                    amount: -75.50,
+                    color: Colors.orange.withValues(alpha: 0.2),
+                  ),
+                  TransactionTile(
+                    icon: Icons.attach_money,
+                    title: 'Salary',
+                    amount: 1200.00,
+                    color: Colors.green.withValues(alpha: 0.2),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ProfileScreen()),
+          );
+        },
+        child: const Icon(Icons.person),
+      ),
     );
   }
 }
 
-class TransactionListView extends StatelessWidget {
-  final List<Transaction> transactions;
-  const TransactionListView({super.key, required this.transactions});
+// Transaction Tile Widget
+class TransactionTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final double amount;
+  final Color color;
+
+  const TransactionTile({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.amount,
+    required this.color,
+  });
+
   @override
   Widget build(BuildContext context) {
-    if (transactions.isEmpty) { return const Center( child: Text('No transactions in this category yet.'), ); }
-    return ListView.builder(
-      itemCount: transactions.length,
-      itemBuilder: (context, index) {
-        final transaction = transactions[index];
-        return ListTile(
-          leading: CircleAvatar(
-            backgroundColor: transaction.category.color.withOpacity(0.2),
-            child: Icon(transaction.category.icon, color: transaction.category.color),
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      color: color,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: ListTile(
+        leading: Icon(icon, color: Colors.black),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+        trailing: Text(
+          amount > 0 ? '+\$${amount.toStringAsFixed(2)}' : '-\$${amount.abs().toStringAsFixed(2)}',
+          style: TextStyle(
+            color: amount > 0 ? Colors.green : Colors.red,
+            fontWeight: FontWeight.bold,
           ),
-          title: Text(transaction.category.name),
-          subtitle: Text(transaction.notes ?? ''),
-          trailing: Text(
-            '${transaction.type == TransactionType.expense ? '-' : '+'}Rp${transaction.amount.toStringAsFixed(0)}',
-            style: TextStyle(
-              color: transaction.type == TransactionType.expense ? Colors.red : Colors.green,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

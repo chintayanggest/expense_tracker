@@ -1,5 +1,6 @@
 ## mobile_course_project
 
+<<<<<<< HEAD
 # FinTrack: A Personal Finance & Expense Tracker
 
 > A modern, user-friendly mobile application designed to help students and young professionals take control of their personal finances with ease and clarity.
@@ -47,3 +48,9 @@ Our development roadmap includes the following core features:
 *   **Flutter SDK:** Version 3.53.3
 *   **Dart SDK:** Version 3.9.2
 *   **Build Tool:** Gradle
+=======
+big project for mobile course
+lalacantek
+
+~~~~
+>>>>>>> nayla-learnprofile
