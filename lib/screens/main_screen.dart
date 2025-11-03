@@ -15,13 +15,12 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  // This is the list of screens that will be displayed for each tab.
   final List<Widget> _widgetOptions = <Widget>[
     DashboardScreen(),
-    GoalsScreen(),   // A placeholder for the "Goals" screen
-    RecurringScreen(),   // A placeholder for the "Recurring" screen
-    LearnScreen(),   // A placeholder for the "Learn" screen
-    ProfileScreen(), // A placeholder for the "Profile" screen
+    GoalsScreen(),
+    RecurringScreen(),
+    LearnScreen(),
+    ProfileScreen(),
   ];
 
   void _onItemTapped(int index) {

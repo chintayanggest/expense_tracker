@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class Account {
   final String id;
-  final String name;
+  String name;
   final IconData icon;
   double balance;
 
