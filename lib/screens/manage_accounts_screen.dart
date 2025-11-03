@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/transaction_provider.dart';
+import 'edit_account_screen.dart';
 
 class ManageAccountsScreen extends StatelessWidget {
   const ManageAccountsScreen({super.key});
@@ -6,9 +9,35 @@ class ManageAccountsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Manage Accounts')),
-      body: const Center(
-        child: Text('Account management UI will be built here.'),
+      appBar: AppBar(
+        title: const Text('Manage Accounts (Rekening)'),
+      ),
+      body: Consumer<TransactionProvider>(
+        builder: (context, provider, child) {
+          final accounts = provider.accounts;
+          return ListView.builder(
+            itemCount: accounts.length,
+            itemBuilder: (context, index) {
+              final account = accounts[index];
+              return ListTile(
+                leading: Icon(account.icon, size: 30),
+                title: Text(account.name),
+                trailing: Text(
+                  'Rp${account.balance.toStringAsFixed(0)}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditAccountScreen(account: account),
+                    ),
+                  );
+                },
+              );
+            },
+          );
+        },
       ),
     );
   }

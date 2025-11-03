@@ -1,55 +1,104 @@
 import 'package:flutter/material.dart';
-import 'manage_accounts_screen.dart';
-import 'manage_categories_screen.dart';
-import 'profile_screen.dart';
 import 'package:provider/provider.dart';
 import '../providers/transaction_provider.dart';
 import '../models/transaction.dart';
 import '../models/transaction_type.dart';
 import 'add_transaction_screen.dart';
+import 'category_transactions_screen.dart';
+import 'manage_accounts_screen.dart';
+import 'manage_categories_screen.dart';
+import 'profile_screen.dart';
+import '../widgets/transaction_chart.dart';
 
+enum FilterPeriod { daily, monthly, yearly }
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
+
 class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+
+  FilterPeriod _selectedPeriod = FilterPeriod.daily;
+  DateTime _selectedDate = DateTime.now();
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
   }
+
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
   }
 
+  void _goToPreviousPeriod() {
+    setState(() {
+      if (_selectedPeriod == FilterPeriod.daily) {
+        _selectedDate = _selectedDate.subtract(const Duration(days: 1));
+      } else if (_selectedPeriod == FilterPeriod.monthly) {
+        _selectedDate = DateTime(_selectedDate.year, _selectedDate.month - 1);
+      } else { // Yearly
+        _selectedDate = DateTime(_selectedDate.year - 1);
+      }
+    });
+  }
+
+  void _goToNextPeriod() {
+    setState(() {
+      final now = DateTime.now();
+      if (_selectedPeriod == FilterPeriod.daily) {
+        if (_selectedDate.year == now.year && _selectedDate.month == now.month && _selectedDate.day == now.day) return;
+        _selectedDate = _selectedDate.add(const Duration(days: 1));
+      } else if (_selectedPeriod == FilterPeriod.monthly) {
+        if (_selectedDate.year == now.year && _selectedDate.month >= now.month) return;
+        _selectedDate = DateTime(_selectedDate.year, _selectedDate.month + 1);
+      } else { // Yearly
+        if (_selectedDate.year >= now.year) return;
+        _selectedDate = DateTime(_selectedDate.year + 1);
+      }
+    });
+  }
+
+  List<Transaction> _getFilteredTransactions(List<Transaction> allTransactions) {
+    return allTransactions.where((tx) {
+      if (_selectedPeriod == FilterPeriod.daily) {
+        return tx.date.year == _selectedDate.year &&
+            tx.date.month == _selectedDate.month &&
+            tx.date.day == _selectedDate.day;
+      } else if (_selectedPeriod == FilterPeriod.monthly) {
+        return tx.date.year == _selectedDate.year && tx.date.month == _selectedDate.month;
+      } else { // Yearly
+        return tx.date.year == _selectedDate.year;
+      }
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<TransactionProvider>(
       builder: (context, transactionProvider, child) {
-        final expenseTransactions = transactionProvider.transactions.where((tx) => tx.type == TransactionType.expense).toList();
-        final incomeTransactions = transactionProvider.transactions.where((tx) => tx.type == TransactionType.income).toList();
+        final allFilteredTransactions = _getFilteredTransactions(transactionProvider.transactions);
+
+        final expenseTransactions = allFilteredTransactions.where((tx) => tx.type == TransactionType.expense).toList();
+        final incomeTransactions = allFilteredTransactions.where((tx) => tx.type == TransactionType.income).toList();
+
         return Scaffold(
           drawer: Drawer(
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
                 const DrawerHeader(
-                  decoration: BoxDecoration(
-                    color: Colors.deepPurple,
-                  ),
-                  child: Text(
-                    'Menu',
-                    style: TextStyle(color: Colors.white, fontSize: 24),
-                  ),
+                  decoration: BoxDecoration(color: Colors.deepPurple),
+                  child: Text('Menu', style: TextStyle(color: Colors.white, fontSize: 24)),
                 ),
                 ListTile(
                   leading: const Icon(Icons.account_balance_wallet),
-                  title: const Text('Rekening(Accounts)'),
+                  title: const Text('Rekening (Accounts)'),
                   onTap:() {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder:(context) => const ManageAccountsScreen()));
@@ -57,7 +106,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                 ),
                 ListTile(
                   leading: const Icon(Icons.category),
-                  title: const Text('Kategori(Categories)'),
+                  title: const Text('Kategori (Categories)'),
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const ManageCategoriesScreen()));
@@ -74,40 +123,101 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
               ],
             ),
           ),
-          appBar: AppBar(
-            title: const Text('Dashboard'),
-            bottom: TabBar(
-              controller: _tabController,
-              tabs: const [ Tab(text: 'Expenses'), Tab(text: 'Income'), ],
-            ),
-          ),
-          body: Column(
-            children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20.0),
-                color: Theme.of(context).primaryColor.withOpacity(0.1),
-                child: Column(
-                  children: [
-                    const Text('Total Balance', style: TextStyle(fontSize: 16, color: Colors.grey)),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Rp${transactionProvider.totalBalance.toStringAsFixed(0)}',
-                      style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+          body: NestedScrollView(
+            headerSliverBuilder: (context, innerBoxIsScrolled) {
+              return [
+                SliverAppBar(
+                  pinned: true,
+                  floating: true,
+                  expandedHeight: 200.0,
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: Container(
+                      padding: const EdgeInsets.all(16.0),
+                      alignment: Alignment.center,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 20),
+                          const Text('Total Balance', style: TextStyle(fontSize: 18, color: Colors.grey)),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Rp${transactionProvider.totalBalance.toStringAsFixed(0)}',
+                            style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
+                  ),
+                  bottom: TabBar(
+                    controller: _tabController,
+                    tabs: const [ Tab(text: 'Expenses'), Tab(text: 'Income'), ],
+                  ),
                 ),
-              ),
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
+                SliverToBoxAdapter(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    child: Column(
+                      children: [
+                        SegmentedButton<FilterPeriod>(
+                          segments: const [
+                            ButtonSegment(value: FilterPeriod.daily, label: Text('Day')),
+                            ButtonSegment(value: FilterPeriod.monthly, label: Text('Month')),
+                            ButtonSegment(value: FilterPeriod.yearly, label: Text('Year')),
+                          ],
+                          selected: {_selectedPeriod},
+                          onSelectionChanged: (Set<FilterPeriod> newSelection) {
+                            setState(() {
+                              _selectedPeriod = newSelection.first;
+                              // Reset date to today when switching filters for simplicity
+                              _selectedDate = DateTime.now();
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            IconButton(icon: const Icon(Icons.chevron_left), onPressed: _goToPreviousPeriod),
+                            Text(
+                              _getFormattedDate(),
+                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                            IconButton(icon: const Icon(Icons.chevron_right), onPressed: _goToNextPeriod),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ];
+            },
+            body: TabBarView(
+              controller: _tabController,
+              children: [
+                Column(
                   children: [
-                    TransactionListView(transactions: expenseTransactions),
-                    TransactionListView(transactions: incomeTransactions),
+                    Container(
+                      height: 220,
+                      padding: const EdgeInsets.symmetric(vertical: 20.0),
+                      child: TransactionChart(transactions: expenseTransactions, type: TransactionType.expense),
+                    ),
+                    const Divider(),
+                    Expanded(child: TransactionListView(transactions: expenseTransactions)),
                   ],
                 ),
-              ),
-            ],
+                Column(
+                  children: [
+                    Container(
+                      height: 220,
+                      padding: const EdgeInsets.symmetric(vertical: 20.0),
+                      child: TransactionChart(transactions: incomeTransactions, type: TransactionType.income),
+                    ),
+                    const Divider(),
+                    Expanded(child: TransactionListView(transactions: incomeTransactions)),
+                  ],
+                ),
+              ],
+            ),
           ),
           floatingActionButton: FloatingActionButton(
             onPressed: () { Navigator.push(context, MaterialPageRoute(builder: (context) => const AddTransactionScreen()),); },
@@ -117,14 +227,30 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
       },
     );
   }
+  String _getFormattedDate() {
+    if (_selectedPeriod == FilterPeriod.daily) {
+      return '${_selectedDate.day} ${_months[_selectedDate.month - 1]} ${_selectedDate.year}';
+    } else if (_selectedPeriod == FilterPeriod.monthly) {
+      return '${_months[_selectedDate.month - 1]} ${_selectedDate.year}';
+    } else {
+      return '${_selectedDate.year}';
+    }
+  }
 }
+
+
+// Helper list for month names
+const List<String> _months = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
 
 class TransactionListView extends StatelessWidget {
   final List<Transaction> transactions;
   const TransactionListView({super.key, required this.transactions});
   @override
   Widget build(BuildContext context) {
-    if (transactions.isEmpty) { return const Center( child: Text('No transactions in this category yet.'), ); }
+    if (transactions.isEmpty) { return const Center( child: Text('No transactions in this period yet.'), ); }
     return ListView.builder(
       itemCount: transactions.length,
       itemBuilder: (context, index) {
@@ -143,6 +269,14 @@ class TransactionListView extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CategoryTransactionsScreen(category: transaction.category),
+              ),
+            );
+          },
         );
       },
     );
