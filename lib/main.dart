@@ -16,6 +16,8 @@ class MyApp extends StatelessWidget {
       create: (context) => TransactionProvider(),
       child: const MaterialApp(
         home: MainScreen(),
+
+        debugShowCheckedModeBanner: false,
       ),
     );
   }

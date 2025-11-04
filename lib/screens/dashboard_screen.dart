@@ -127,11 +127,13 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
             headerSliverBuilder: (context, innerBoxIsScrolled) {
               return [
                 SliverAppBar(
+                  backgroundColor: Colors.deepPurple,
                   pinned: true,
                   floating: true,
                   expandedHeight: 200.0,
                   flexibleSpace: FlexibleSpaceBar(
                     background: Container(
+                      color: Colors.deepPurple,
                       padding: const EdgeInsets.all(16.0),
                       alignment: Alignment.center,
                       child: Column(
@@ -142,13 +144,16 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                           const SizedBox(height: 8),
                           Text(
                             'Rp${transactionProvider.totalBalance.toStringAsFixed(0)}',
-                            style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                         ],
                       ),
                     ),
                   ),
                   bottom: TabBar(
+                    indicatorColor: Colors.white,
+                    labelColor: Colors.white,
+                    unselectedLabelColor: Colors.white70,
                     controller: _tabController,
                     tabs: const [ Tab(text: 'Expenses'), Tab(text: 'Income'), ],
                   ),
@@ -220,6 +225,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
             ),
           ),
           floatingActionButton: FloatingActionButton(
+            backgroundColor: Color(0xFF7B45DA),
             onPressed: () { Navigator.push(context, MaterialPageRoute(builder: (context) => const AddTransactionScreen()),); },
             child: const Icon(Icons.add),
           ),
