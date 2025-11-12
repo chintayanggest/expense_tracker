@@ -10,6 +10,7 @@ class Transaction {
   final Account account;
   final DateTime date;
   final String? notes;
+  final List<String>? imagePaths;
 
   Transaction({
     required this.id,
@@ -19,5 +20,6 @@ class Transaction {
     required this.account,
     required this.date,
     this.notes,
+    this.imagePaths,
   });
 }
