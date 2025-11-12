@@ -6,12 +6,13 @@ import '../models/transaction.dart';
 import '../models/transaction_type.dart';
 import '../providers/transaction_provider.dart';
 import 'dart:math';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 enum DateShortcut { today, yesterday, none }
 
 class AddTransactionScreen extends StatefulWidget {
   final Transaction? transactionToEdit;
-
   const AddTransactionScreen({super.key, this.transactionToEdit});
 
   @override
@@ -28,6 +29,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> with Single
   DateTime _selectedDate = DateTime.now();
   DateShortcut _selectedDateShortcut = DateShortcut.today;
 
+  final List<XFile> _imageFiles = [];
+  final ImagePicker _picker = ImagePicker();
 
   bool get _isEditing => widget.transactionToEdit != null;
 
@@ -54,6 +57,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> with Single
       _selectedCategory = tx.category;
       _selectedAccount = provider.accounts.firstWhere((acc) => acc.id == tx.account.id);
       _notesController.text = tx.notes ?? '';
+      if (tx.imagePaths != null) {
+        for (var path in tx.imagePaths!) {
+          _imageFiles.add(XFile(path));
+        }
+      }
       _selectedDateShortcut = DateShortcut.none;
     } else {
       if (provider.accounts.isNotEmpty) {
@@ -70,6 +78,51 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> with Single
     super.dispose();
   }
 
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final pickedFile = await _picker.pickImage(source: source);
+      if (pickedFile != null) {
+        setState(() {
+          _imageFiles.add(pickedFile);
+        });
+      }
+    } catch (e) {
+      print('Failed to pick image: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to pick image: $e')),
+      );
+    }
+  }
+  void _showImageSourceActionSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) {
+        return SafeArea(
+          child: Wrap(
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Photo Library'),
+                onTap: () {
+                  _pickImage(ImageSource.gallery);
+                  Navigator.of(ctx).pop();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_camera),
+                title: const Text('Camera'),
+                onTap: () {
+                  _pickImage(ImageSource.camera);
+                  Navigator.of(ctx).pop();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(context: context, initialDate: _selectedDate, firstDate: DateTime(2000), lastDate: DateTime(2101));
     if (picked != null && picked != _selectedDate) {
@@ -81,14 +134,16 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> with Single
   }
 
   void _saveTransaction() {
-    if (!_formKey.currentState!.validate()) {
-      return; // If validation fails, do not proceed
+    if (!_formKey.currentState!.validate()) { return; }
+    if (_selectedCategory == null || _selectedAccount == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a category and account.')));
+      return;
     }
-    if (_amountController.text.isEmpty || _selectedCategory == null || _selectedAccount == null) { return; }
-    final amount = double.tryParse(_amountController.text);
-    if (amount == null || amount <= 0) { return; }
 
+    final amount = double.tryParse(_amountController.text)!;
     final transactionType = _tabController.index == 0 ? TransactionType.expense : TransactionType.income;
+    final notes = _notesController.text;
+    final imagePaths = _imageFiles.map((file) => file.path).toList();
 
     if (_isEditing) {
       final updatedTransaction = Transaction(
@@ -98,20 +153,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> with Single
         category: _selectedCategory!,
         account: _selectedAccount!,
         date: _selectedDate,
-        notes: _notesController.text,
+        notes: notes,
+        imagePaths: imagePaths.isNotEmpty ? imagePaths : null,
       );
       Provider.of<TransactionProvider>(context, listen: false).updateTransaction(updatedTransaction);
-
       Navigator.of(context).popUntil((route) => route.isFirst);
-
-      // success snackbar
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Transaction updated successfully!'),
-          duration: Duration(seconds: 2),
-          backgroundColor: Colors.green,
-        ),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Transaction updated successfully!'), duration: Duration(seconds: 2), backgroundColor: Colors.green));
     } else {
       final newTransaction = Transaction(
         id: Random().nextDouble().toString(),
@@ -120,7 +167,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> with Single
         category: _selectedCategory!,
         account: _selectedAccount!,
         date: _selectedDate,
-        notes: _notesController.text,
+        notes: notes,
+        imagePaths: imagePaths.isNotEmpty ? imagePaths : null,
       );
       Provider.of<TransactionProvider>(context, listen: false).addTransaction(newTransaction);
       Navigator.pop(context);
@@ -162,28 +210,34 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> with Single
             TextFormField(
               controller: _amountController,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(
-                labelText: 'Amount',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration( labelText: 'Amount', border: OutlineInputBorder() ),
               validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter an amount.';
-                }
-                if (double.tryParse(value) == null) {
-                  return 'Please enter a valid number.';
-                }
-                if (double.parse(value) <= 0) {
-                  return 'Amount must be greater than zero.';
-                }
-                return null; // Return null if the input is valid
+                if (value == null || value.isEmpty) { return 'Please enter an amount.'; }
+                if (double.tryParse(value) == null) { return 'Please enter a valid number.'; }
+                if (double.parse(value) <= 0) { return 'Amount must be greater than zero.'; }
+                return null;
               },
             ),
             const SizedBox(height: 16),
+            DropdownButtonFormField<Account>(
+              value: _selectedAccount,
+              hint: const Text('Select Account'),
+              items: accounts.map((account) {
+                return DropdownMenuItem<Account>(
+                  value: account,
+                  child: Row(children: [ Icon(account.icon, size: 20), const SizedBox(width: 8), Text(account.name) ]),
+                );
+              }).toList(),
+              onChanged: (Account? newValue) { setState(() { _selectedAccount = newValue; }); },
+              decoration: const InputDecoration( labelText: 'Account', border: OutlineInputBorder() ),
+            ),
+            const SizedBox(height: 16),
+            const Text('Category', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount( crossAxisCount: 4, mainAxisSpacing: 8, crossAxisSpacing: 8, ),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount( crossAxisCount: 4, mainAxisSpacing: 8, crossAxisSpacing: 8 ),
               itemCount: categories.length,
               itemBuilder: (context, index) {
                 final category = categories[index];
@@ -209,7 +263,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> with Single
               },
             ),
             const SizedBox(height: 16),
-            // Replace the old Row with this new Column
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -221,13 +274,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> with Single
                 ),
                 Row(
                   children: [
-                    // UPGRADED Button for "Today"
                     FilledButton.tonal(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: _selectedDateShortcut == DateShortcut.today
-                            ? Theme.of(context).primaryColor.withOpacity(0.3)
-                            : null,
-                      ),
+                      style: FilledButton.styleFrom(backgroundColor: _selectedDateShortcut == DateShortcut.today ? Theme.of(context).primaryColor.withOpacity(0.3) : null),
                       child: const Text('Today'),
                       onPressed: () {
                         setState(() {
@@ -237,13 +285,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> with Single
                       },
                     ),
                     const SizedBox(width: 8),
-                    // UPGRADED Button for "Yesterday"
                     FilledButton.tonal(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: _selectedDateShortcut == DateShortcut.yesterday
-                            ? Theme.of(context).primaryColor.withOpacity(0.3)
-                            : null,
-                      ),
+                      style: FilledButton.styleFrom(backgroundColor: _selectedDateShortcut == DateShortcut.yesterday ? Theme.of(context).primaryColor.withOpacity(0.3) : null),
                       child: const Text('Yesterday'),
                       onPressed: () {
                         setState(() {
@@ -257,7 +300,57 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> with Single
               ],
             ),
             const SizedBox(height: 16),
-            TextField( controller: _notesController, decoration: const InputDecoration(labelText: 'Notes (Optional)', border: OutlineInputBorder()), ),
+            TextField( controller: _notesController, decoration: const InputDecoration(labelText: 'Notes (Optional)', border: OutlineInputBorder()) ),
+            const SizedBox(height: 24),
+            const Text('Photos', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 100,
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => _showImageSourceActionSheet(context),
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(8)),
+                      child: const Icon(Icons.add_a_photo, color: Colors.grey, size: 40),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _imageFiles.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.file(File(_imageFiles[index].path), width: 100, height: 100, fit: BoxFit.cover),
+                              ),
+                              Positioned(
+                                top: 0,
+                                right: 0,
+                                child: GestureDetector(
+                                  onTap: () { setState(() { _imageFiles.removeAt(index); }); },
+                                  child: Container(
+                                    decoration: BoxDecoration(color: Colors.black.withOpacity(0.5), shape: BoxShape.circle),
+                                    child: const Icon(Icons.close, color: Colors.white, size: 18),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 32),
             ElevatedButton(
               onPressed: _saveTransaction,

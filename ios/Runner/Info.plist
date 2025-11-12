@@ -44,6 +44,10 @@
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
+    <key>NSCameraUsageDescription</key>
+    <string>This app needs access to the camera to let you take photos of receipts or items for your transactions.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>This app needs access to the photo library to let you select images of receipts or items for your transactions.</string>
 	<true/>
 </dict>
 </plist>

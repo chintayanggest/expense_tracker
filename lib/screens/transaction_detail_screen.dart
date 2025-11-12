@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
 import 'add_transaction_screen.dart';
+import 'dart:io';
+import 'fullscreen_image_viewer.dart';
 
 class TransactionDetailScreen extends StatelessWidget {
   final Transaction transaction;
@@ -87,6 +89,55 @@ class TransactionDetailScreen extends StatelessWidget {
             const Divider(),
             _buildDetailRow('Notes:', transaction.notes ?? 'No notes provided'),
             const Divider(),
+
+            if (transaction.imagePaths != null && transaction.imagePaths!.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              const Text('Photos', style: TextStyle(fontSize: 16, color: Colors.grey)),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 120,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: transaction.imagePaths!.length,
+                  itemBuilder: (context, index) {
+                    final path = transaction.imagePaths![index];
+                    // Create a unique tag for the Hero animation
+                    final heroTag = 'image-$path-$index';
+
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      // Make the image tappable
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => FullscreenImageViewer(
+                                imagePath: path,
+                                heroTag: heroTag,
+                              ),
+                            ),
+                          );
+                        },
+                        // The Hero widget enables the smooth animation
+                        child: Hero(
+                          tag: heroTag,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.file(
+                              File(path),
+                              width: 120,
+                              height: 120,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           ],
         ),
       ),
