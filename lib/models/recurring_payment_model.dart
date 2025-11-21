@@ -1,10 +1,10 @@
 class RecurringPayment {
   final String id;
   final String name;
-  final double amount;
+  final int amount;
   final String category;
   final String frequency;
-  final DateTime nextPaymentDate;
+  final DateTime? nextPaymentDate; // Ubah jadi nullable
 
   RecurringPayment({
     required this.id,
@@ -12,6 +12,6 @@ class RecurringPayment {
     required this.amount,
     required this.category,
     required this.frequency,
-    required this.nextPaymentDate,
+    this.nextPaymentDate, // Tidak required lagi
   });
 }
