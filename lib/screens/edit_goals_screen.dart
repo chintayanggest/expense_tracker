@@ -1,4 +1,4 @@
-// lib/pages/add_goal_page.dart
+// lib/pages/edit_goal_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -8,14 +8,16 @@ import 'dart:io';
 import '../models/savings_goal_model.dart';
 
 
-class AddGoalPage extends StatefulWidget {
-  const AddGoalPage({Key? key}) : super(key: key);
+class EditGoalPage extends StatefulWidget {
+  final SavingsGoal goal;
+
+  const EditGoalPage({Key? key, required this.goal}) : super(key: key);
 
   @override
-  State<AddGoalPage> createState() => _AddGoalPageState();
+  State<EditGoalPage> createState() => _EditGoalPageState();
 }
 
-class _AddGoalPageState extends State<AddGoalPage> {
+class _EditGoalPageState extends State<EditGoalPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _targetAmountController = TextEditingController();
@@ -28,10 +30,17 @@ class _AddGoalPageState extends State<AddGoalPage> {
   bool _isLoading = false;
   bool _showNameHint = false;
   bool _showAmountHint = false;
+  bool _imageChanged = false;
 
   @override
   void initState() {
     super.initState();
+    // Pre-fill dengan data goal yang ada
+    _nameController.text = widget.goal.name;
+    _targetAmountController.text = NumberFormat('#,###', 'id_ID').format(widget.goal.targetAmount.toInt());
+    _selectedDate = widget.goal.targetDate;
+    _imagePath = widget.goal.imagePath;
+
     _nameFocusNode.addListener(() {
       setState(() {
         _showNameHint = _nameFocusNode.hasFocus;
@@ -55,7 +64,6 @@ class _AddGoalPageState extends State<AddGoalPage> {
 
   Future<void> _requestStoragePermission() async {
     if (Platform.isAndroid) {
-      // Untuk Android 13+ (API 33+)
       final photoStatus = await Permission.photos.status;
       if (photoStatus.isDenied) {
         final result = await Permission.photos.request();
@@ -67,7 +75,6 @@ class _AddGoalPageState extends State<AddGoalPage> {
         }
       }
 
-      // Untuk Android 12 dan dibawahnya
       final storageStatus = await Permission.storage.status;
       if (storageStatus.isDenied) {
         final result = await Permission.storage.request();
@@ -79,7 +86,6 @@ class _AddGoalPageState extends State<AddGoalPage> {
         }
       }
     } else if (Platform.isIOS) {
-      // Untuk iOS
       final photoStatus = await Permission.photos.status;
       if (photoStatus.isDenied) {
         final result = await Permission.photos.request();
@@ -97,15 +103,15 @@ class _AddGoalPageState extends State<AddGoalPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFF1E1E1E),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text(
           'Permission Required',
-          style: TextStyle(color: Color(0xFF121212)),
+          style: TextStyle(color: Colors.white),
         ),
         content: const Text(
           'Please allow access to your photos in settings to upload images for your goals.',
-          style: TextStyle(color: Color(0xFF121212)),
+          style: TextStyle(color: Colors.white),
         ),
         actions: [
           TextButton(
@@ -135,10 +141,8 @@ class _AddGoalPageState extends State<AddGoalPage> {
 
   Future<void> _pickImage() async {
     try {
-      // Minta permission dulu
       await _requestStoragePermission();
 
-      // Langsung buka gallery
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(
         source: ImageSource.gallery,
@@ -150,53 +154,15 @@ class _AddGoalPageState extends State<AddGoalPage> {
       if (image != null) {
         setState(() {
           _imagePath = image.path;
+          _imageChanged = true;
         });
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Image selected successfully!'),
+              content: Text('Image updated successfully!'),
               backgroundColor: Color(0xFFC6FF00),
               duration: Duration(seconds: 2),
-            ),
-          );
-        }
-      } else {
-        // User cancelled
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  const Icon(Icons.info_outline, color: Color(0xFF121212)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          'No image selected',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF121212),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Tip: Upload foto dulu ke emulator via drag & drop',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: const Color(0xFF121212).withOpacity(0.7),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              backgroundColor: const Color(0xFFC6FF00),
-              duration: const Duration(seconds: 4),
             ),
           );
         }
@@ -205,26 +171,8 @@ class _AddGoalPageState extends State<AddGoalPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Failed to pick image: $e'),
-                const SizedBox(height: 8),
-                const Text(
-                  '💡 Emulator Tips:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const Text(
-                  '1. Drag & drop foto ke emulator\n'
-                      '2. Atau upload via Device File Explorer\n'
-                      '3. Lalu coba lagi',
-                  style: TextStyle(fontSize: 12),
-                ),
-              ],
-            ),
+            content: Text('Failed to pick image: $e'),
             backgroundColor: Colors.red,
-            duration: const Duration(seconds: 5),
           ),
         );
       }
@@ -234,22 +182,22 @@ class _AddGoalPageState extends State<AddGoalPage> {
   Future<void> _selectDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now().add(const Duration(days: 30)),
+      initialDate: _selectedDate ?? DateTime.now().add(const Duration(days: 30)),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 3650)),
       builder: (context, child) {
         return Theme(
           data: ThemeData.dark().copyWith(
             colorScheme: const ColorScheme.dark(
-              primary: Color(0xFFC6FF00),       // Selected date - Lime green
-              onPrimary: Color(0xFF121212),      // Text on selected date - Black
-              surface: Color(0xFF121212),        // Background calendar - Black
-              onSurface: Colors.white,           // Text calendar - White
+              primary: Color(0xFFC6FF00),
+              onPrimary: Color(0xFF121212),
+              surface: Color(0xFF121212),
+              onSurface: Colors.white,
             ),
-            dialogBackgroundColor: const Color(0xFF121212), // Dialog background - Black
+            dialogBackgroundColor: const Color(0xFF121212),
             textButtonTheme: TextButtonThemeData(
               style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFFC6FF00), // Button text - Lime green
+                foregroundColor: const Color(0xFFC6FF00),
               ),
             ),
           ),
@@ -257,6 +205,7 @@ class _AddGoalPageState extends State<AddGoalPage> {
         );
       },
     );
+
     if (picked != null) {
       setState(() {
         _selectedDate = picked;
@@ -264,27 +213,25 @@ class _AddGoalPageState extends State<AddGoalPage> {
     }
   }
 
-  Future<void> _saveGoal() async {
+  Future<void> _updateGoal() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
       try {
-        final goal = SavingsGoal(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+        final updatedGoal = widget.goal.copyWith(
           name: _nameController.text.trim(),
           targetAmount: double.parse(_targetAmountController.text.replaceAll('.', '').replaceAll(',', '')),
-          currentAmount: 0.0,
           targetDate: _selectedDate,
           imagePath: _imagePath,
         );
 
-        // await _dbService.createGoal(goal);
+        // await _dbService.updateGoal(updatedGoal);
 
         if (mounted) {
           Navigator.pop(context, true);
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Goal created successfully!'),
+              content: Text('Goal updated successfully!'),
               backgroundColor: Color(0xFFC6FF00),
             ),
           );
@@ -318,7 +265,7 @@ class _AddGoalPageState extends State<AddGoalPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          'Create New Goal',
+          'Edit Goal',
           style: TextStyle(color: Colors.white),
         ),
       ),
@@ -338,7 +285,7 @@ class _AddGoalPageState extends State<AddGoalPage> {
                 const SizedBox(height: 20),
                 _buildDatePicker(),
                 const SizedBox(height: 32),
-                _buildSaveButton(),
+                _buildUpdateButton(),
               ],
             ),
           ),
@@ -414,7 +361,7 @@ class _AddGoalPageState extends State<AddGoalPage> {
             ),
             const SizedBox(height: 12),
             const Text(
-              'Add Goal Image',
+              'Change Goal Image',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 16,
@@ -423,7 +370,7 @@ class _AddGoalPageState extends State<AddGoalPage> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Visualize your dream',
+              'Tap to update',
               style: TextStyle(
                 color: Colors.grey[400],
                 fontSize: 14,
@@ -457,7 +404,6 @@ class _AddGoalPageState extends State<AddGoalPage> {
           textCapitalization: TextCapitalization.words,
           autofocus: false,
           onTap: () {
-            // Memastikan keyboard muncul
             FocusScope.of(context).requestFocus(_nameFocusNode);
           },
           decoration: InputDecoration(
@@ -469,11 +415,11 @@ class _AddGoalPageState extends State<AddGoalPage> {
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
-            prefixIcon:             const Icon(Icons.flag, color: Color(0xFF121212)),
+            prefixIcon: const Icon(Icons.flag, color: Color(0xFF121212)),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: const Color(0xFF2A2A2A),
+              borderSide: const BorderSide(
+                color: Color(0xFF2A2A2A),
                 width: 1,
               ),
             ),
@@ -500,17 +446,17 @@ class _AddGoalPageState extends State<AddGoalPage> {
               color: const Color(0xFFC6FF00).withOpacity(0.2),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Row(
+            child: const Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.lightbulb_outline,
                   size: 16,
                   color: Colors.white,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '💡 Masukkan nama tujuan tabungan Anda (contoh: Liburan ke Bali)',
+                    '💡 Update nama tujuan tabungan Anda',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 12,
@@ -546,7 +492,6 @@ class _AddGoalPageState extends State<AddGoalPage> {
           textInputAction: TextInputAction.done,
           autofocus: false,
           onTap: () {
-            // Memastikan keyboard muncul
             FocusScope.of(context).requestFocus(_amountFocusNode);
           },
           inputFormatters: [
@@ -571,7 +516,7 @@ class _AddGoalPageState extends State<AddGoalPage> {
               borderSide: BorderSide.none,
             ),
             prefixIcon: const Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: EdgeInsets.all(12.0),
               child: Text(
                 'Rp',
                 style: TextStyle(
@@ -615,17 +560,17 @@ class _AddGoalPageState extends State<AddGoalPage> {
               color: const Color(0xFFC6FF00).withOpacity(0.2),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Row(
+            child: const Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.lightbulb_outline,
                   size: 16,
                   color: Colors.white,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '💰 Masukkan jumlah target dalam angka (contoh: 5000000)',
+                    '💰 Update jumlah target tabungan Anda',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 12,
@@ -695,12 +640,12 @@ class _AddGoalPageState extends State<AddGoalPage> {
     );
   }
 
-  Widget _buildSaveButton() {
+  Widget _buildUpdateButton() {
     return SizedBox(
       width: double.infinity,
       height: 56,
       child: ElevatedButton(
-        onPressed: _isLoading ? null : _saveGoal,
+        onPressed: _isLoading ? null : _updateGoal,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFFC6FF00),
           shape: RoundedRectangleBorder(
@@ -718,7 +663,7 @@ class _AddGoalPageState extends State<AddGoalPage> {
           ),
         )
             : const Text(
-          'Create Goal',
+          'Update Goal',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
