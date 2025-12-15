@@ -12,24 +12,51 @@ class ManageCategoriesScreen extends StatelessWidget {
         final categories = provider.categories;
 
         return Scaffold(
+          backgroundColor: const Color(0xFF121212),
+
           appBar: AppBar(
-            title: const Text('Manage Categories'),
+            backgroundColor: const Color(0xFF121212),
+            elevation: 0,
+            title: const Text(
+              'Manage Categories',
+              style: TextStyle(color: Colors.white),
+            ),
+            iconTheme: const IconThemeData(color: Colors.white),
           ),
+
           body: ListView.builder(
             itemCount: categories.length,
             itemBuilder: (context, index) {
               final category = categories[index];
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: category.color.withOpacity(0.2),
-                  child: Icon(category.icon, color: category.color),
+
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E1E1E),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                title: Text(category.name),
-                trailing: Text(
-                  category.type.toString().split('.').last, // This gets 'income' or 'expense'
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontStyle: FontStyle.italic,
+                child: ListTile(
+                  leading: CircleAvatar(
+                    radius: 22,
+                    backgroundColor: category.color.withOpacity(0.25),
+                    child: Icon(category.icon, color: category.color, size: 24),
+                  ),
+
+                  title: Text(
+                    category.name,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+
+                  subtitle: Text(
+                    category.type.toString().split('.').last,
+                    style: TextStyle(
+                      color: Colors.grey[400],
+                      fontStyle: FontStyle.italic,
+                    ),
                   ),
                 ),
               );

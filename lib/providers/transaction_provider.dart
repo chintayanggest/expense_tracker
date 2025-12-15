@@ -1,134 +1,144 @@
+// lib/providers/transaction_provider.dart
+
 import 'package:flutter/material.dart';
-import '../models/account.dart';
-import '../models/transaction_category.dart';
-import '../models/transaction.dart';
-import '../models/transaction_type.dart';
+import '../models/unified_models.dart';
+import '../services/database_helper.dart';
 
 class TransactionProvider with ChangeNotifier {
-  final List<Transaction> _transactions = [];
-  final List<Account> _accounts = [
-    Account(id: 'a1', name: 'Wallet', icon: Icons.account_balance_wallet),
-    Account(id: 'a2', name: 'GoPay', icon: Icons.phone_android),
-    Account(id: 'a3', name: 'ShopeePay', icon: Icons.shopping_cart),
-    Account(id: 'a4', name: 'DANA', icon: Icons.credit_card),
-    Account(id: 'a5', name: 'OVO', icon: Icons.local_offer),
-    Account(id: 'a6', name: 'Mobile Banking 1', icon: Icons.account_balance),
-    Account(id: 'a7', name: 'Mobile Banking 2', icon: Icons.account_balance),
-    Account(id: 'a8', name: 'Mobile Banking 3', icon: Icons.account_balance),
-    Account(id: 'a9', name: 'Mobile Banking 4', icon: Icons.account_balance),
-    Account(id: 'a10', name: 'Mobile Banking 5', icon: Icons.account_balance),
-    Account(id: 'a11', name: 'Cash', icon: Icons.money),
-    Account(id: 'a12', name: 'E-Money Card', icon: Icons.payment),
-    Account(id: 'a13', name: 'Credit Card', icon: Icons.credit_card_outlined),
-    Account(id: 'a14', name: 'Investment', icon: Icons.trending_up),
-    Account(id: 'a15', name: 'Savings', icon: Icons.savings),
-    Account(id: 'a16', name: 'Other', icon: Icons.more_horiz),
-  ];
+  List<TransactionModel> _transactions = [];
+  List<Account> _accounts = [];
 
+  // CATEGORIES LIST (Kept same as before)
   final List<TransactionCategory> _categories = [
-    // --- 9 Expense Categories ---
-    TransactionCategory(id: 'e1', name: 'Food', icon: Icons.fastfood, color: Colors.orange, type: TransactionType.expense),
-    TransactionCategory(id: 'e2', name: 'Transport', icon: Icons.directions_car, color: Colors.blue, type: TransactionType.expense),
-    TransactionCategory(id: 'e3', name: 'Shopping', icon: Icons.shopping_bag, color: Colors.pink, type: TransactionType.expense),
-    TransactionCategory(id: 'e4', name: 'Bills', icon: Icons.receipt, color: Colors.green, type: TransactionType.expense),
-    TransactionCategory(id: 'e5', name: 'Health', icon: Icons.healing, color: Colors.red, type: TransactionType.expense),
-    TransactionCategory(id: 'e6', name: 'Housing', icon: Icons.house, color: Colors.brown, type: TransactionType.expense),
-    TransactionCategory(id: 'e7', name: 'Education', icon: Icons.school, color: Colors.indigo, type: TransactionType.expense),
-    TransactionCategory(id: 'e8', name: 'Entertainment', icon: Icons.movie, color: Colors.purple, type: TransactionType.expense),
-    TransactionCategory(id: 'e9', name: 'Beauty', icon: Icons.face , color: Colors.pinkAccent , type: TransactionType.expense),
-    TransactionCategory(id: 'e10', name: 'Other', icon: Icons.more_horiz, color: Colors.grey, type: TransactionType.expense),
-
-    // --- 9 Income Categories ---
-    TransactionCategory(id: 'i1', name: 'Salary', icon: Icons.work, color: Colors.green, type: TransactionType.income),
-    TransactionCategory(id: 'i2', name: 'Gifts', icon: Icons.card_giftcard, color: Colors.red, type: TransactionType.income),
-    TransactionCategory(id: 'i3', name: 'Investment', icon: Icons.trending_up, color: Colors.blue, type: TransactionType.income),
-    TransactionCategory(id: 'i4', name: 'Freelance', icon: Icons.laptop_mac, color: Colors.teal, type: TransactionType.income),
-    TransactionCategory(id: 'i5', name: 'Business', icon: Icons.business, color: Colors.cyan, type: TransactionType.income),
-    TransactionCategory(id: 'i6', name: 'Rental', icon: Icons.real_estate_agent, color: Colors.amber, type: TransactionType.income),
-    TransactionCategory(id: 'i7', name: 'Awards', icon: Icons.emoji_events, color: Colors.yellow, type: TransactionType.income),
-    TransactionCategory(id: 'i8', name: 'Grants', icon: Icons.account_balance, color: Colors.lightGreen, type: TransactionType.income),
-    TransactionCategory(id: 'i9', name: 'Other', icon: Icons.more_horiz, color: Colors.grey, type: TransactionType.income),
+    TransactionCategory(id: 'e1', name: 'Food', iconCode: Icons.fastfood.codePoint, colorValue: Colors.orange.value, type: TransactionType.expense),
+    TransactionCategory(id: 'e2', name: 'Transport', iconCode: Icons.directions_car.codePoint, colorValue: Colors.blue.value, type: TransactionType.expense),
+    TransactionCategory(id: 'e3', name: 'Shopping', iconCode: Icons.shopping_bag.codePoint, colorValue: Colors.pink.value, type: TransactionType.expense),
+    TransactionCategory(id: 'e4', name: 'Bills', iconCode: Icons.receipt.codePoint, colorValue: Colors.green.value, type: TransactionType.expense),
+    TransactionCategory(id: 'e5', name: 'Health', iconCode: Icons.healing.codePoint, colorValue: Colors.red.value, type: TransactionType.expense),
+    TransactionCategory(id: 'e6', name: 'Housing', iconCode: Icons.house.codePoint, colorValue: Colors.brown.value, type: TransactionType.expense),
+    TransactionCategory(id: 'e7', name: 'Education', iconCode: Icons.school.codePoint, colorValue: Colors.indigo.value, type: TransactionType.expense),
+    TransactionCategory(id: 'e8', name: 'Entertainment', iconCode: Icons.movie.codePoint, colorValue: Colors.purple.value, type: TransactionType.expense),
+    TransactionCategory(id: 'e9', name: 'Beauty', iconCode: Icons.face.codePoint , colorValue: Colors.pinkAccent.value , type: TransactionType.expense),
+    TransactionCategory(id: 'e10', name: 'Other', iconCode: Icons.more_horiz.codePoint, colorValue: Colors.grey.value, type: TransactionType.expense),
+    TransactionCategory(id: 'i1', name: 'Salary', iconCode: Icons.work.codePoint, colorValue: Colors.green.value, type: TransactionType.income),
+    TransactionCategory(id: 'i2', name: 'Gifts', iconCode: Icons.card_giftcard.codePoint, colorValue: Colors.red.value, type: TransactionType.income),
+    TransactionCategory(id: 'i3', name: 'Investment', iconCode: Icons.trending_up.codePoint, colorValue: Colors.blue.value, type: TransactionType.income),
+    TransactionCategory(id: 'i4', name: 'Freelance', iconCode: Icons.laptop_mac.codePoint, colorValue: Colors.teal.value, type: TransactionType.income),
+    TransactionCategory(id: 'i5', name: 'Business', iconCode: Icons.business.codePoint, colorValue: Colors.cyan.value, type: TransactionType.income),
+    TransactionCategory(id: 'i6', name: 'Rental', iconCode: Icons.real_estate_agent.codePoint, colorValue: Colors.amber.value, type: TransactionType.income),
+    TransactionCategory(id: 'i7', name: 'Awards', iconCode: Icons.emoji_events.codePoint, colorValue: Colors.yellow.value, type: TransactionType.income),
+    TransactionCategory(id: 'i8', name: 'Grants', iconCode: Icons.account_balance.codePoint, colorValue: Colors.lightGreen.value, type: TransactionType.income),
+    TransactionCategory(id: 'i9', name: 'Other', iconCode: Icons.more_horiz.codePoint, colorValue: Colors.grey.value, type: TransactionType.income),
   ];
 
-  // --- GETTERS ---
-  List<Transaction> get transactions => _transactions;
-  List<TransactionCategory> get categories => _categories;
+  List<TransactionModel> get transactions => _transactions;
   List<Account> get accounts => _accounts;
+  List<TransactionCategory> get categories => _categories;
   List<TransactionCategory> getCategoriesByType(TransactionType type) { return _categories.where((c) => c.type == type).toList(); }
 
-  double get totalBalance {
-    return _accounts.fold(0.0, (sum, account) => sum + account.balance);
-  }
+  double get totalBalance => _accounts.fold(0.0, (sum, account) => sum + account.balance);
 
-  double get totalIncome { return _transactions.where((tx) => tx.type == TransactionType.income).fold(0.0, (sum, item) => sum + item.amount); }
-  double get totalExpense { return _transactions.where((tx) => tx.type == TransactionType.expense).fold(0.0, (sum, item) => sum + item.amount); }
+  // --- DATABASE OPERATIONS ---
 
-  // --- METHODS ---
-  void addTransaction(Transaction transaction) {
-    _transactions.add(transaction);
-    // Find the account and update its balance based on the transaction
-    final account = _accounts.firstWhere((acc) => acc.id == transaction.account.id);
-    if (transaction.type == TransactionType.income) {
-      account.balance += transaction.amount;
-    } else {
-      account.balance -= transaction.amount;
+  Future<void> fetchData(String userId) async {
+    final db = await DatabaseHelper.instance.database;
+
+    // 1. Fetch Accounts
+    final accResult = await db.query('accounts', where: 'userId = ?', whereArgs: [userId]);
+    _accounts = accResult.map((e) => Account.fromMap(e)).toList();
+
+    // 2. Fetch Transactions
+    final txResult = await db.query('transactions', where: 'userId = ?', whereArgs: [userId], orderBy: 'date DESC');
+
+    _transactions = [];
+    for (var row in txResult) {
+      final account = _accounts.firstWhere(
+              (a) => a.id == row['accountId'],
+          orElse: () => _accounts.isNotEmpty ? _accounts[0] : Account(id: 'temp', userId: userId, name: 'Unknown', iconCode: 0)
+      );
+
+      final category = _categories.firstWhere(
+              (c) => c.id == row['categoryId'],
+          orElse: () => _categories[0]
+      );
+
+      _transactions.add(TransactionModel(
+        id: row['id'] as String,
+        userId: row['userId'] as String,
+        amount: row['amount'] as double,
+        type: (row['type'] as int) == 0 ? TransactionType.expense : TransactionType.income,
+        category: category,
+        account: account,
+        date: DateTime.parse(row['date'] as String),
+        notes: row['notes'] as String?,
+        imagePaths: (row['imagePaths'] as String?)?.split(',').where((e) => e.isNotEmpty).toList(),
+      ));
     }
     notifyListeners();
   }
 
-  void deleteTransaction(String transactionId) {
-    // Find the transaction to be deleted
-    final transactionIndex = _transactions.indexWhere((tx) => tx.id == transactionId);
-    if (transactionIndex == -1) return; // Not found
+  Future<void> addTransaction(TransactionModel tx) async {
+    final db = await DatabaseHelper.instance.database;
+    await db.insert('transactions', tx.toMap());
 
-    final transactionToDelete = _transactions[transactionIndex];
+    // Update the Account Balance in DB
+    final account = _accounts.firstWhere((acc) => acc.id == tx.account.id);
+    double newBalance = tx.type == TransactionType.income
+        ? account.balance + tx.amount
+        : account.balance - tx.amount;
 
-    // Reverse the transaction's effect on the account balance
-    final account = _accounts.firstWhere((acc) => acc.id == transactionToDelete.account.id);
-    if (transactionToDelete.type == TransactionType.income) {
-      account.balance -= transactionToDelete.amount;
-    } else {
-      account.balance += transactionToDelete.amount;
-    }
+    await db.update(
+        'accounts',
+        {'balance': newBalance},
+        where: 'id = ?',
+        whereArgs: [account.id]
+    );
 
-    // Remove the transaction from the list
-    _transactions.removeAt(transactionIndex);
-    notifyListeners();
+    await fetchData(tx.userId);
   }
 
-  void updateTransaction(Transaction updatedTransaction) {
-    // Find the index of the old transaction
-    final transactionIndex = _transactions.indexWhere((tx) => tx.id == updatedTransaction.id);
-    if (transactionIndex == -1) return; // Not found
+  // --- FIXED: Delete Transaction and Sync Balance ---
+  Future<void> deleteTransaction(String id) async {
+    final db = await DatabaseHelper.instance.database;
 
-    final oldTransaction = _transactions[transactionIndex];
+    // 1. Find the transaction in the local list before deleting
+    final txToDelete = _transactions.firstWhere((t) => t.id == id);
 
-    // Find the associated account
-    final account = _accounts.firstWhere((acc) => acc.id == oldTransaction.account.id);
+    // 2. Find the associated account
+    final account = _accounts.firstWhere((acc) => acc.id == txToDelete.account.id);
 
-    // Step 1: Undo the old transaction's amount
-    if (oldTransaction.type == TransactionType.income) {
-      account.balance -= oldTransaction.amount;
-    } else {
-      account.balance += oldTransaction.amount;
-    }
-    // Step 2: Apply the new transaction's amount
-    if (updatedTransaction.type == TransactionType.income) {
-      account.balance += updatedTransaction.amount;
-    } else {
-      account.balance -= updatedTransaction.amount;
-    }
+    // 3. Reverse the balance calculation
+    // If it was Income, we subtract. If it was Expense, we add it back.
+    double newBalance = txToDelete.type == TransactionType.income
+        ? account.balance - txToDelete.amount
+        : account.balance + txToDelete.amount;
 
-    _transactions[transactionIndex] = updatedTransaction;
-    notifyListeners();
+    // 4. Update Account in DB
+    await db.update(
+        'accounts',
+        {'balance': newBalance},
+        where: 'id = ?',
+        whereArgs: [account.id]
+    );
+
+    // 5. Delete the Transaction from DB
+    await db.delete('transactions', where: 'id = ?', whereArgs: [id]);
+
+    // 6. Refresh UI
+    await fetchData(txToDelete.userId);
   }
 
-  void updateAccount({required String id, required String newName, required double newBalance}) {
-    final accountIndex = _accounts.indexWhere((acc) => acc.id == id);
-    if (accountIndex != -1) {
-      _accounts[accountIndex].name = newName;
-      _accounts[accountIndex].balance = newBalance;
-      notifyListeners();
-    }
+  Future<void> updateAccount({required String id, required String newName, required double newBalance}) async {
+    final db = await DatabaseHelper.instance.database;
+
+    await db.update(
+        'accounts',
+        {'name': newName, 'balance': newBalance},
+        where: 'id = ?',
+        whereArgs: [id]
+    );
+
+    final acc = _accounts.firstWhere((a) => a.id == id);
+    await fetchData(acc.userId);
   }
 }

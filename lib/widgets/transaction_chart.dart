@@ -1,17 +1,17 @@
+// lib/widgets/transaction_chart.dart
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import '../models/transaction.dart';
-import '../models/transaction_type.dart';
-import '../models/transaction_category.dart';
+import '../models/unified_models.dart'; // EXCLUSIVE IMPORT
 
 class TransactionChart extends StatelessWidget {
-  final List<Transaction> transactions;
+  final List<TransactionModel> transactions;
   final TransactionType type;
 
   const TransactionChart({
     super.key,
     required this.transactions,
-    required this.type,
+    required this.type, required Color backgroundColor,
   });
 
   @override
@@ -21,29 +21,32 @@ class TransactionChart extends StatelessWidget {
     if (totalValue == 0) {
       return Center(
         child: Text(
-          'No ${type.toString().split('.').last} data for this period.',
+          'No ${type == TransactionType.expense ? 'expense' : 'income'} data.',
           style: const TextStyle(fontSize: 16, color: Colors.grey),
         ),
       );
     }
 
-    final Map<TransactionCategory, double> categoryValues = {};
+    final Map<String, double> categoryValues = {};
     for (var tx in transactions) {
       categoryValues.update(
-        tx.category,
+        tx.category.name,
             (value) => value + tx.amount,
         ifAbsent: () => tx.amount,
       );
     }
 
     final List<PieChartSectionData> sections = categoryValues.entries.map((entry) {
-      final category = entry.key;
       final totalAmount = entry.value;
+      final percentage = (totalAmount / totalValue * 100);
+
+      final sampleTx = transactions.firstWhere((t) => t.category.name == entry.key);
+      final color = sampleTx.category.color;
 
       return PieChartSectionData(
-        color: category.color,
+        color: color,
         value: totalAmount,
-        title: '${(totalAmount / totalValue * 100).toStringAsFixed(0)}%',
+        title: '${percentage.toStringAsFixed(0)}%',
         radius: 50,
         titleStyle: const TextStyle(
           fontSize: 12,

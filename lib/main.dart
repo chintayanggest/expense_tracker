@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'screens/main_screen.dart';
 import 'package:provider/provider.dart';
 import 'providers/transaction_provider.dart';
+import 'providers/auth_provider.dart';
+import 'providers/goal_provider.dart'; // Assuming you have this
+import 'providers/recurring_provider.dart'; // Assuming you have this
+import 'screens/splash_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,12 +15,21 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => TransactionProvider(),
-      child: const MaterialApp(
-        home: MainScreen(),
-
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => TransactionProvider()),
+        ChangeNotifierProvider(create: (_) => GoalProvider()),
+        ChangeNotifierProvider(create: (_) => RecurringProvider()),
+      ],
+      child: MaterialApp(
+        title: 'FinTrack',
         debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          useMaterial3: true,
+        ),
+        home: const SplashScreen(),
       ),
     );
   }

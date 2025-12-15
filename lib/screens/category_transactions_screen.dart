@@ -1,9 +1,12 @@
+// lib/screens/category_transactions_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/transaction_category.dart';
-import '../models/transaction.dart';
+import '../models/unified_models.dart'; // EXCLUSIVE IMPORT
+// REMOVED: import '../models/transaction_category.dart';
+// REMOVED: import '../models/transaction.dart';
+// REMOVED: import '../models/transaction_type.dart';
 import '../providers/transaction_provider.dart';
-import '../models/transaction_type.dart';
 import 'transaction_detail_screen.dart';
 
 class CategoryTransactionsScreen extends StatelessWidget {
@@ -15,16 +18,17 @@ class CategoryTransactionsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = Provider.of<TransactionProvider>(context, listen: false);
 
+    // Filter transactions by category ID
     final transactions = provider.transactions
         .where((tx) => tx.category.id == category.id)
         .toList();
 
+    // Sort by date descending
     transactions.sort((a, b) => b.date.compareTo(a.date));
 
-    // --- NEW DATA GROUPING LOGIC ---
-    final Map<DateTime, List<Transaction>> groupedTransactions = {};
+    // Group by Date
+    final Map<DateTime, List<TransactionModel>> groupedTransactions = {};
     for (var tx in transactions) {
-      // We use a "normalized" date (without time) as the key
       final dateKey = DateTime(tx.date.year, tx.date.month, tx.date.day);
       if (groupedTransactions[dateKey] == null) {
         groupedTransactions[dateKey] = [];
@@ -32,22 +36,20 @@ class CategoryTransactionsScreen extends StatelessWidget {
       groupedTransactions[dateKey]!.add(tx);
     }
 
-    // Convert the map to a list of entries to use in the ListView.builder
     final groupedList = groupedTransactions.entries.toList();
 
     return Scaffold(
       appBar: AppBar(
         title: Text(category.name),
-        backgroundColor: category.color,
+        backgroundColor: category.color, // Using Color object from unified model
       ),
       body: ListView.builder(
-        itemCount: groupedList.length, // The number of days with transactions
+        itemCount: groupedList.length,
         itemBuilder: (context, index) {
           final dateEntry = groupedList[index];
           final date = dateEntry.key;
           final dailyTransactions = dateEntry.value;
 
-          // Return a Column for each day, containing a header and the list of transactions
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -63,7 +65,7 @@ class CategoryTransactionsScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              // LIST OF TRANSACTIONS FOR THAT DAY
+              // TRANSACTIONS LIST
               ListView.separated(
                 physics: const NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
@@ -104,7 +106,6 @@ class CategoryTransactionsScreen extends StatelessWidget {
   }
 }
 
-//  helper list
 const List<String> _months = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'
