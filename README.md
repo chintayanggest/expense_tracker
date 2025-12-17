@@ -15,8 +15,8 @@ This project is being developed as a final requirement for the Mobile Programmin
 1. Najdain Tafdila (231402008)
 2. Najmiyatul Nabilah Lubis (231402011)
 3. Chinta Yanggest Br Tarigan (231402038)
-4. Nayla Syifa (231402123)
-5. Adelin Putri Yulisa S (231402080)
+4. Adelin Putri Yulisa S (231402080)
+5. Nayla Syifa (231402123)
 
 
 ## Features 
