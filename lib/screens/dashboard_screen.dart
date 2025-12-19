@@ -229,6 +229,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             headerSliverBuilder: (context, innerBoxIsScrolled) {
               return [
                 SliverAppBar(
+                  iconTheme: const IconThemeData(color: Colors.white),
                   backgroundColor: const Color(0xFF121212),
                   pinned: true,
                   floating: true,
